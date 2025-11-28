@@ -41,6 +41,31 @@ public class SaleShipmentDocument extends ShipmentDocument {
         return sumQuantity >= minQuantity;
     }
 
+    /**
+     * Суммарная стоимость товаров с учетом скидки, попадающих в список промо-акции.
+     * Для каждого товара из промо-акции применяем скидку (с округлением до копеек в большую сторону)
+     *
+     * @param discountPercent скидка в процентах
+     */
+    public double promoSum(String[] promoArticles, double discountPercent) {
+        if (discountPercent < 0 || discountPercent > 100) {
+            throw new IllegalArgumentException("Скидка должна быть в диапазоне от 0 до 100!");
+        }
+        List<ShipmentItem> shipmentItems = getShipmentItems();
+        double sum = 0;
+        for (ShipmentItem shipmentItem : shipmentItems) {
+            for (String promoArticle : promoArticles) {
+                if (shipmentItem.article().equals(promoArticle)) {
+                    double amount = shipmentItem.getAmount();
+                    double amountWithDiscount = amount * (1 - discountPercent / 100);
+                    sum += Math.ceil(amountWithDiscount * 100) / 100;
+                    break;
+                }
+            }
+        }
+        return sum;
+    }
+
     @Override
     public DocumentType getDocumentType() {
         return DocumentType.SALE;
